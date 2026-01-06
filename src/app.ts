@@ -18,9 +18,13 @@ class BulkResizer {
   private statusText: HTMLElement;
   private logArea: HTMLElement;
   private downloadSection: HTMLElement;
+  private maxWidthInput: HTMLInputElement;
+  private maxHeightInput: HTMLInputElement;
+  private qualityInput: HTMLInputElement;
   // We use 'null' initially since it isn't created until the user clicks resize
   private zip: JSZipObject | null = null;
   private processedBlob: Blob | null = null;
+  private aspectRatio: number | null = null;
 
   constructor() {
     this.fileInput = document.getElementById('fileInput') as HTMLInputElement;
@@ -39,6 +43,13 @@ class BulkResizer {
     this.downloadSection = document.getElementById(
       'downloadSection',
     ) as HTMLElement;
+    this.maxWidthInput = document.getElementById(
+      'maxWidth',
+    ) as HTMLInputElement;
+    this.maxHeightInput = document.getElementById(
+      'maxHeight',
+    ) as HTMLInputElement;
+    this.qualityInput = document.getElementById('quality') as HTMLInputElement;
 
     this.initListeners();
   }
@@ -48,8 +59,32 @@ class BulkResizer {
       if (this.fileInput.files && this.fileInput.files.length > 0) {
         this.resizeBtn.disabled = false;
         this.log(`Selected ${this.fileInput.files.length} files.`);
+        this.getFirstImageAspectRatio();
       } else {
         this.resizeBtn.disabled = true;
+        this.aspectRatio = null;
+      }
+    });
+
+    this.maxWidthInput.addEventListener('input', () => {
+      if (this.aspectRatio) {
+        const width = parseInt(this.maxWidthInput.value);
+        if (!isNaN(width)) {
+          this.maxHeightInput.value = Math.round(
+            width / this.aspectRatio,
+          ).toString();
+        }
+      }
+    });
+
+    this.maxHeightInput.addEventListener('input', () => {
+      if (this.aspectRatio) {
+        const height = parseInt(this.maxHeightInput.value);
+        if (!isNaN(height)) {
+          this.maxWidthInput.value = Math.round(
+            height * this.aspectRatio,
+          ).toString();
+        }
       }
     });
 
@@ -69,6 +104,21 @@ class BulkResizer {
     });
   }
 
+  private getFirstImageAspectRatio() {
+    const file = this.fileInput.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        this.aspectRatio = img.width / img.height;
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
   private async startProcessing() {
     const files = this.fileInput.files;
     if (!files || files.length === 0) return;
@@ -81,25 +131,18 @@ class BulkResizer {
     this.resizeBtn.disabled = true;
     this.logArea.innerHTML = '';
 
-    const maxWidth =
-      parseInt(
-        (document.getElementById('maxWidth') as HTMLInputElement).value,
-      ) || 1920;
-    const maxHeight =
-      parseInt(
-        (document.getElementById('maxHeight') as HTMLInputElement).value,
-      ) || 1080;
-    const quality =
-      parseFloat(
-        (document.getElementById('quality') as HTMLInputElement).value,
-      ) || 0.8;
+    const maxWidth = parseInt(this.maxWidthInput.value) || 1920;
+    const maxHeight = parseInt(this.maxHeightInput.value) || 1080;
+    const quality = parseFloat(this.qualityInput.value) || 0.8;
 
     this.progressBar.max = files.length;
     this.progressBar.value = 0;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      this.statusText.innerText = `Processing ${i + 1}/${files.length}: ${file.name}`;
+      this.statusText.innerText = `Processing ${i + 1}/${files.length}: ${
+        file.name
+      }`;
 
       try {
         const resizedBlob = await this.resizeImage(
