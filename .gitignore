@@ -1,4 +1,10 @@
 
+# Ignore system files
 .DS_Store
+
+# Node.js dependencies
 node_modules
+
+# Build artifacts
 build
+.tsconfig.tsbuildinfo
