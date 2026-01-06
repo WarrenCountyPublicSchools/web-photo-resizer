@@ -12,7 +12,7 @@
     "prepare": "npm run compile",
     "pretest": "npm run compile",
     "posttest": "npm run lint",
-    "build": "tsc && cp src/index.html build/index.html"
+    "build": "tsc && cp src/index.html build/index.html && cp -r src/assets build/assets"
   },
   "keywords": [],
   "author": "",
