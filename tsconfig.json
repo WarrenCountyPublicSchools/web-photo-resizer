@@ -1,0 +1,16 @@
+{
+  "extends": "./node_modules/gts/tsconfig-google.json",
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "ESNext",
+    "outDir": "build",
+    "rootDir": "./src",
+    "strict": true,
+    "lib": ["DOM", "ES6"],
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts"
+  ]
+}

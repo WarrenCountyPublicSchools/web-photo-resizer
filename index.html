@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client-Side Bulk Resizer</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .controls { background: #f4f4f4; padding: 1.5rem; border-radius: 8px; display: grid; gap: 1rem; }
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        button { background: #007bff; color: white; border: none; padding: 0.75rem; border-radius: 4px; cursor: pointer; font-size: 1rem; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #progress-container { margin-top: 2rem; display: none; }
+        progress { width: 100%; height: 20px; }
+        #log { margin-top: 1rem; font-family: monospace; font-size: 0.9rem; color: #555; max-height: 200px; overflow-y: auto; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <h1>Bulk Photo Resizer</h1>
+    
+    <div class="controls">
+        <div class="input-group">
+            <label for="fileInput"><strong>Select Photos</strong></label>
+            <input type="file" id="fileInput" multiple accept="image/*">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="input-group">
+                <label for="maxWidth">Max Width (px)</label>
+                <input type="number" id="maxWidth" value="1920">
+            </div>
+            <div class="input-group">
+                <label for="maxHeight">Max Height (px)</label>
+                <input type="number" id="maxHeight" value="1080">
+            </div>
+        </div>
+        
+        <div class="input-group">
+             <label for="quality">JPEG Quality (0.1 - 1.0)</label>
+             <input type="number" id="quality" step="0.1" min="0.1" max="1" value="0.8">
+        </div>
+
+        <button id="resizeBtn" disabled>Resize & Zip</button>
+    </div>
+
+    <div id="progress-container">
+        <label for="progressBar">Processing...</label>
+        <progress id="progressBar" value="0" max="100"></progress>
+        <p id="statusText">Waiting to start...</p>
+    </div>
+
+    <div id="downloadSection" class="hidden" style="margin-top: 1rem; text-align: center;">
+        <button id="downloadBtn" style="background-color: #28a745;">Download All (ZIP)</button>
+    </div>
+
+    <div id="log"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script type="module" src="./app.ts"></script>
+</body>
+</html>
