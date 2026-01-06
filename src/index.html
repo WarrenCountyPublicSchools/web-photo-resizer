@@ -5,57 +5,314 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Client-Side Bulk Resizer</title>
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-        .controls { background: #f4f4f4; padding: 1.5rem; border-radius: 8px; display: grid; gap: 1rem; }
-        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        button { background: #007bff; color: white; border: none; padding: 0.75rem; border-radius: 4px; cursor: pointer; font-size: 1rem; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        #progress-container { margin-top: 2rem; display: none; }
-        progress { width: 100%; height: 20px; }
-        #log { margin-top: 1rem; font-family: monospace; font-size: 0.9rem; color: #555; max-height: 200px; overflow-y: auto; }
-        .hidden { display: none; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo-area {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo-area svg {
+            width: 50px;
+            height: 50px;
+            fill: #667eea;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .controls { 
+            background: white;
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .input-group { 
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
+
+        input[type="file"] {
+            padding: 1rem;
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            background: #f7fafc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        input[type="file"]:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        input[type="number"] {
+            padding: 0.875rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        button { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled { 
+            background: #cbd5e0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #progress-container { 
+            margin-top: 2rem;
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        #progress-container label {
+            display: block;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        progress { 
+            width: 100%;
+            height: 12px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: none;
+            background: #e2e8f0;
+        }
+
+        progress::-webkit-progress-bar {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        progress::-webkit-progress-value {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        progress::-moz-progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        #statusText {
+            margin-top: 1rem;
+            color: #4a5568;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        #log { 
+            margin-top: 2rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.9);
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        #log:empty {
+            display: none;
+        }
+
+        .hidden { 
+            display: none;
+        }
+
+        #downloadSection {
+            margin-top: 1.5rem;
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        #downloadBtn {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+            font-size: 1.1rem;
+            padding: 1.25rem 2.5rem;
+        }
+
+        #downloadBtn:hover {
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.5);
+        }
+
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .controls {
+                padding: 1.5rem;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .logo-area {
+                width: 60px;
+                height: 60px;
+            }
+
+            .logo-area svg {
+                width: 35px;
+                height: 35px;
+            }
+        }
     </style>
 </head>
 <body>
-
-    <h1>Bulk Photo Resizer</h1>
-    
-    <div class="controls">
-        <div class="input-group">
-            <label for="fileInput"><strong>Select Photos</strong></label>
-            <input type="file" id="fileInput" multiple accept="image/*">
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="input-group">
-                <label for="maxWidth">Max Width (px)</label>
-                <input type="number" id="maxWidth" value="1920">
+    <div class="container">
+        <div class="header">
+            <div class="logo-area">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                </svg>
             </div>
-            <div class="input-group">
-                <label for="maxHeight">Max Height (px)</label>
-                <input type="number" id="maxHeight" value="1080">
-            </div>
+            <h1>Bulk Photo Resizer</h1>
+            <p class="subtitle">Resize your images instantly, right in your browser</p>
         </div>
         
-        <div class="input-group">
-             <label for="quality">JPEG Quality (0.1 - 1.0)</label>
-             <input type="number" id="quality" step="0.1" min="0.1" max="1" value="0.8">
+        <div class="controls">
+            <div class="input-group">
+                <label for="fileInput">Select Photos</label>
+                <input type="file" id="fileInput" multiple accept="image/*">
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group">
+                    <label for="maxWidth">Max Width (px)</label>
+                    <input type="number" id="maxWidth" value="1920">
+                </div>
+                <div class="input-group">
+                    <label for="maxHeight">Max Height (px)</label>
+                    <input type="number" id="maxHeight" value="1080">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="quality">JPEG Quality (0.1 - 1.0)</label>
+                <input type="number" id="quality" step="0.1" min="0.1" max="1" value="0.8">
+            </div>
+
+            <button id="resizeBtn" disabled>Resize & Zip</button>
         </div>
 
-        <button id="resizeBtn" disabled>Resize & Zip</button>
-    </div>
+        <div id="progress-container">
+            <label for="progressBar">Processing...</label>
+            <progress id="progressBar" value="0" max="100"></progress>
+            <p id="statusText">Waiting to start...</p>
+        </div>
 
-    <div id="progress-container">
-        <label for="progressBar">Processing...</label>
-        <progress id="progressBar" value="0" max="100"></progress>
-        <p id="statusText">Waiting to start...</p>
-    </div>
+        <div id="downloadSection" class="hidden">
+            <button id="downloadBtn">Download All (ZIP)</button>
+        </div>
 
-    <div id="downloadSection" class="hidden" style="margin-top: 1rem; text-align: center;">
-        <button id="downloadBtn" style="background-color: #28a745;">Download All (ZIP)</button>
+        <div id="log"></div>
     </div>
-
-    <div id="log"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script type="module" src="./app.js"></script>
