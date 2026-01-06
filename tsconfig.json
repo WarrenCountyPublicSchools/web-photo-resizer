@@ -7,7 +7,8 @@
     "rootDir": "./src",
     "strict": true,
     "lib": ["DOM", "ES6"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "sourceMap": false
   },
   "include": [
     "src/**/*.ts",
